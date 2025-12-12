@@ -1,37 +1,44 @@
-import heapq
+import itertools
+from functools import reduce
+
+COMBO_LENGTH = 12
 
 def get_banks():
     values = open("input.txt")
     values_list = values.read().split('\n')
     return values_list
 
-def get_higher_combo(bank, tail_count = 1):
-    combos = []
-    ten_index = 0
-    bank_len = len(bank)
-    while ten_index < bank_len:
-        for unit_index in range(ten_index + 1, bank_len):
-            combo = [bank[ten_index]]
-            for tail_index in range(tail_count):
-                computed_index = unit_index + tail_index
-                if computed_index < len(bank):
-                    combo.append(bank[unit_index + tail_index])
-                    combos.append(int(''.join(combo)))
-        ten_index += 1
-    return heapq.nlargest(1, combos)[0]
+# def get_higher_combo(bank, combo_length):
+#     combinations = itertools.combinations(bank, combo_length)
+#     combinations_list = []
+#     for item in combinations:
+#         combinations_list.append(int(''.join(item)))
+#     return max(combinations_list)
+
+def get_higher_combos(banks):
+    return map(lambda bank : max_numeric_combination(bank, COMBO_LENGTH), banks)
+
+def get_sum_of_higher_combos(combos):
+    higher_combos = get_higher_combos(combos)
+    return sum(higher_combos)
+
+def max_numeric_combination(s: str, k: int):
+    stack = []
+    to_remove = len(s) - k
+
+    for c in s:
+        while stack and to_remove > 0 and stack[-1] < c:
+            stack.pop()
+            to_remove -= 1
+        stack.append(c)
+
+    # on garde seulement les k premiers (stack peut être plus longue)
+    return int("".join(stack[:k]))
 
 
 def main():
     banks = get_banks()
-    higher_combos = []
-    giga_mega_higher_combos = []
-    for bank in banks:
-        higher_combo = get_higher_combo(bank)
-        giga_mega_higher_combo = get_higher_combo(bank, 11)
-        higher_combos.append(higher_combo)
-        giga_mega_higher_combos.append(giga_mega_higher_combo)
-    print("Sum of max combos is : " + str(sum(higher_combos)))
-    print(bank, giga_mega_higher_combos)
-    print("Sum of max giga mega combos is : " + str(sum(giga_mega_higher_combos)))
+    sum = get_sum_of_higher_combos(banks)
+    print("Sum of all joltages : " + str(sum))
 
 main()
